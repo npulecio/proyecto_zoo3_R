@@ -1,0 +1,34 @@
+---
+title: "En discusión!"
+author: "Nelson Pulecio"
+date: "last-modified"
+toc: true 
+format:
+  html:
+    code-fold: true
+    theme: journal
+    embed-resources: true
+    css: resources/estilo.css
+editor: visual
+lang: es
+keywords:
+  -En proceso!
+---
+
+## Resumen
+
+
+## Introducción
+
+
+## Metodología
+
+
+## Resultados
+
+
+## Discusión
+
+
+## Conlusión 
+
