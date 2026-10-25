@@ -8,27 +8,56 @@ format:
     code-fold: true
     theme: journal
     embed-resources: true
-    css: resources/estilo.css
+    css: resources/estilos.css
 editor: visual
 lang: es
 keywords:
-  -En proceso!
+  -Barranquilla
+  -Avifauna
+bibliography: resources/recursos_bibliograficos/referencias.bib
 ---
 
 ## Resumen
 
-
 ## Introducción
 
+La *Ortalis garrula*, cuyo nombre común es guacharaca, fue clasificada por primera vez por Humboldt en 1805 [@OLIVARES_1966] y se considera uno de los símbolos representativos de la región Caribe al ser una especie endémica colombiana (solo tiene distribución en Colombia) cuyas poblaciones están mayormente centradas en la región Caribe, donde tiene fuertes relaciones con la cultura, por ejemplo, @peraltaagudeloBrujasTalismanesOtras2025 resalta que las plumas de *Ortalis garrula* se consideran de buena suerte entre las comunidades campesinas del rió Sinú. Aunque esta ave también tiene distribución en la región Andina y reducidas poblaciones en la región Pacífica. a nivel morfológico *Ortalis garrula* es un ave de tamaño mediano la cual no tiene dimorfismo sexual (machos y hembras son físicamente iguales) y se caracteriza por un plumaje de tonos marrones en el lomo, tonos rojizos bajo el pico y las alas, así como tonos blanquecinos en el vientre y las patas.
+
+Actualmente *Ortalis garrula* es considerada una especie sombrilla para la región caribe, lo que quiere decir que el cuidado de las poblaciones de esta ave y su habitad implica un cuidado de diversas especies y ecosistemas asociados a ella. Respecto a su alimentación, @setina3ARTICULOSNOTAS2012 resalta que su dieta se compone de los frutos de *Brosimum utile, Eugenia oblongifolia, Ficus sp., Miconia sp., Psychotria sp., y Bellusia sp.* junto con el consumo de insectos, alimentación relacionada a su preferencia por bosques primarios y secundarios a diferencias de zonas en recuperación o cultivos agrícolas. Aunque *Ortalis garrula* está clasificada como LC, es decir, preocupación menor por la UICN [@IUCNRedList] se considera según los criterios de la AICAS (Áreas importantes para la conservación de las aves y la biodiversidad) como una especie de distribución restringida.
 
 ## Metodología
 
+### Área de estudio
 
-## Resultados
+La ciudad de Barranquilla figura como una de las más importantes de la región Caribe colombiana, se ubica 10,59 latitud norte y 74,47 longitud oeste con una elevación que está en el rango de los 4 y 120 msnm. Su posición geográfica delimitada con el río magdalena y su desembocadura de nombre "Bocas de ceniza" la hacen figurar entre las ciudades más importantes del país. [@romanasMIRADASUROCCIDENTEBARRANQUILLA] Al ser parte de la región Caribe colombiana, gran parte del ecosistema en el que se encuentra es bosque seco tropical, sin embargo por su posición costera y la influencia de Bocas de ceniza cuenta con otros ecosistemas importantes para la avifauna como lo es la Ciénaga de mallorquín, sitio clave para las aves residentes y un punto de paso para las aves migratorias.
 
+Entre las tantas divisiones que puede tener la ciudad, una de las que presenta el POT emitido por la @PLANORDENAMIENTOTERRITORIAL divide la ciudad en cuatro tipos de suelo principales ([@fig-mapa1]) , entre los cuales se encuentra el suelo urbano en donde el proceso de urbanización está consolidado, el suelo de expansión urbana que se describe como suelo en donde el proceso de urbanización puede continuar en el POT vigente o en el futuro, el suelo rural el cual no puede ser urbanizado por diversas causas y el suelo en protección, dicha categoría puede estar incluida dentro de cualquiera de los suelos anteriores y por diversas causas como pueden serlo paisajísticas o ambientales está restringida la urbanización. Por esta razón, para este estudio, dicho tipo de suelo se encuentra indexado en su respectiva categoría como parte de esta.
 
-## Discusión
+```{r}
+#| label: fig-mapa1
+#| message: false
+#| warning: false
+#| fig-cap: Mapa de la ciudad de barranquilla dividido según el tipo de suelo, datos tomados de @PanchicoreBarranquilla_geojsonBarranquilla
 
+suppressPackageStartupMessages({
+  library(here)
+  library(sf)
+  library(ggplot2)
+})
 
-## Conlusión 
+datos_mapa <- here(
+  "data", "raw_data", "raw_datos_espaciales",
+  "clasificacion_de_suelo_bq.json"
+) |> st_read(quiet = T)
 
+mapa <- ggplot(datos_mapa) +
+  geom_sf(aes(fill = TIPO), color = "black") +
+  scale_fill_brewer(palette = "Pastel2")
+
+mapa
+
+```
+
+### Obtención de la información y tabla de variables
+
+Los datos de presencia para la ciudad de Barranquilla relacionados a este proyecto se obtuvieron mediante la plataforma [Gbif](https://www.gbif.org/es/) utilizando los filtros 
