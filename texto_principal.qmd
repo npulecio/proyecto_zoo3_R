@@ -1,5 +1,5 @@
 ---
-title: "En discusión!"
+title: "Análisis de la frecuencia de observación de *O. garrula* en Barranquilla según los tipos de suelo contemplados en el POT 2012-2032 en el periodo 2015-2025"
 author: "Nelson Pulecio"
 date: "last-modified"
 toc: true 
