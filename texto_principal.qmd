@@ -1,5 +1,5 @@
 ---
-title: "Análisis de la frecuencia de observación de *O. garrula* en Barranquilla según los tipos de suelo contemplados en el POT 2012-2032 en el periodo 2015-2025"
+title: "Análisis de la frecuencia relativa de observación de *O. garrula* en Barranquilla según los tipos de suelo contemplados en el POT 2012-2032 en el periodo 2015-2025"
 author: "Nelson Pulecio"
 date: "last-modified"
 toc: true 
@@ -25,7 +25,7 @@ La *Ortalis garrula*, cuyo nombre común es guacharaca, fue clasificada por prim
 
 Actualmente *Ortalis garrula* es considerada una especie sombrilla para la región caribe, lo que quiere decir que el cuidado de las poblaciones de esta ave y su habitad implica un cuidado de diversas especies y ecosistemas asociados a ella. Respecto a su alimentación, @setina3ARTICULOSNOTAS2012 resalta que su dieta se compone de los frutos de *Brosimum utile, Eugenia oblongifolia, Ficus sp., Miconia sp., Psychotria sp., y Bellusia sp.* junto con el consumo de insectos, alimentación relacionada a su preferencia por bosques primarios y secundarios a diferencias de zonas en recuperación o cultivos agrícolas. Aunque *Ortalis garrula* está clasificada como LC, es decir, preocupación menor por la UICN [@IUCNRedList] se considera según los criterios de la AICAS (Áreas importantes para la conservación de las aves y la biodiversidad) como una especie de distribución restringida.
 
-## Metodología
+## Materiales y métodos
 
 ### Área de estudio
 
@@ -37,7 +37,9 @@ Entre las tantas divisiones que puede tener la ciudad, una de las que presenta e
 #| label: fig-mapa1
 #| message: false
 #| warning: false
-#| fig-cap: Mapa de la ciudad de barranquilla dividido según el tipo de suelo, datos tomados de @PanchicoreBarranquilla_geojsonBarranquilla
+#| fig-cap: Mapa de la ciudad de barranquilla dividido según el tipo de suelo contemplado en el POT vigente 2012-2032, datos tomados de [@PanchicoreBarranquilla_geojsonBarranquilla]
+
+#Cargar las librerias necesarias para correr el codigo, usando la función suppresspackagesstartupmessages({}) para suprimir los mensajes que aparecen al cargar las librerias.
 
 suppressPackageStartupMessages({
   library(here)
@@ -45,10 +47,14 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
+#Carga los datos necesarios para crear el mapa, usando la libreria here para facilitar escribir las rutas de los archivos y la funcion st_read para leer los archivos con datos geoespaciales
+
 datos_mapa <- here(
   "data", "raw_data", "raw_datos_espaciales",
   "clasificacion_de_suelo_bq.json"
 ) |> st_read(quiet = T)
+
+#crea el mapa con los datos geoespaciales y rellena con color el area usando la columna TIPO que contiene el tipo de suelo.
 
 mapa <- ggplot(datos_mapa) +
   geom_sf(aes(fill = TIPO), color = "black") +
@@ -58,6 +64,119 @@ mapa
 
 ```
 
-### Obtención de la información y tabla de variables
+### Obtención de la información
 
-Los datos de presencia para la ciudad de Barranquilla relacionados a este proyecto se obtuvieron mediante la plataforma [Gbif](https://www.gbif.org/es/) utilizando los filtros 
+Los datos de presencia para la ciudad de Barranquilla relacionados a este proyecto se obtuvieron mediante la plataforma [Gbif](https://www.gbif.org/es/) utilizando los filtros de registro de presencia donde se puso el estado presente, año en donde se puso el periodo 2015-2025, nombre científico donde se puso el filtro aves y localización/ubicación usando las geometrías de los polígonos correspondientes a cada tipo de suelo.
+
+Los datos geoespaciales son originalmente derivados del portal de ArcGIS de la ciudad de Barranquilla y convertidos mediante la ArcGIS REST API, los datos fueron recuperados por @PanchicoreBarranquilla_geojsonBarranquilla mediante su repositorio de github. Los polígonos resultantes fueron separados por tipo de suelo mediante google earth y convertidos a wkt mediante [Mapryx](https://mapryx.geoforger.com/tools/geojson-wkt-converter) para poder ser utilizados como filtro geometrico en gbif.
+
+### Limpieza de los datos
+
+Originalmente los datos geoespaciales obtenido mediante el repositorio de [@PanchicoreBarranquilla_geojsonBarranquilla] están separados por capa, por lo que mediante la herramienta Google earth se separó cada tipo de suelo con la intención obtener los datos de registro de presencia de las aves separados por tipo de suelo.
+
+Dichos datos contienen información irrelevante para el estudio por lo que se hizo una limpieza de los datos, eliminando las variables que no eran relevantes y agregando una variable identificadora para cada tipo de suelo con la intención de facilitar los análisis estadísticos y gráficas, los valores NA en la columna "individualCount" fueron remplazados por 1, conjuntamente, se creó un único csv con todos los registros. A continuación se presenta el script correspondiente a la limpieza y unificación de los datos.
+
+``` {r}
+#| eval: false
+#| code-summary: "Codigo de limpieza y unificación de datos"
+library(dplyr)
+
+# En este script se realiza el proceso de limpieza de los datos que corresponden a los 
+# registros de presencia de las aves en los distintos tipos de suelo. Como es el mismo proceso
+# para los tres tipos de suelo y por ende es el mismo codigo, solo se documenta en suelo rural 
+# el proceso de limpieza, luego el proceso de unificación de los data frames.
+
+#--------------- SUELO RURAL ---------------------------------------
+
+suelo_rural <- read_delim("data/raw_data/raw_datos_avistamiento/suelo_rural.csv",
+                          delim = "\t", escape_double = FALSE,
+                          col_types = cols(datasetKey = col_skip()),
+                          trim_ws = TRUE) #Importa los datos en crudo
+
+#Elimina los NA de la columna de conteo individual
+# usando indexación logica de vecotres, remplazando
+# los NA por 1.
+
+suelo_rural$individualCount[is.na(suelo_rural$individualCount)] <- 1 
+
+#Seleciona solo las columnas de interés para el estudio,
+#con la funcion select() y agrega la columna floorType a 
+#todas las filas del data frame con mutate()
+
+suelo_rural_limpio <- suelo_rural |> select(species, individualCount,  
+                      decimalLatitude, decimalLongitude, month, year)|>  
+                      mutate(floorType = "rural")                        
+
+##guarda el data frame resultante en un csv con el nombre 
+#"suelo_rural_limpio.csv"
+
+write.csv(suelo_rural_limpio, file = "suelo_rural_limpio.csv", row.names = F) 
+
+#------------------ SUELO EN EXPANSIÓN ................................
+
+suelo_en_expansion <- read_delim("data/raw_data/raw_datos_avistamiento/suelo_en_expansion.csv",
+                                 delim = "\t", escape_double = FALSE,
+                                 trim_ws = TRUE)
+
+suelo_en_expansion$individualCount[is.na(suelo_en_expansion$individualCount)] <- 1
+
+suelo_en_expansion_limpio <- suelo_en_expansion |> select(species, individualCount,
+                             decimalLatitude, decimalLongitude, month, year)|> 
+                             mutate(floorType = "en expansión")
+
+write.csv(suelo_en_expansion_limpio, file = "suelo_en_expansion_limpio.csv", row.names = F)
+
+#------------------ SUELO URBANO -----------------------------------------
+
+suelo_urbano <- read_delim("data/raw_data/raw_datos_avistamiento/suelo_urbano.csv",
+                           delim = "\t", escape_double = FALSE,
+                           trim_ws = TRUE)
+
+suelo_urbano$individualCount[is.na(suelo_urbano$individualCount)] <- 1
+
+suelo_urbano_limpio <-  suelo_urbano |> select(species, individualCount,
+                        decimalLatitude, decimalLongitude, month, year)|> 
+                        mutate(floorType = "urbano")
+
+write.csv(suelo_urbano, file = "suelo_urbano_limpio.csv", row.names = F)
+
+#------------UNIÓN DE LOS CSV Y CREACION DEL NUEVO---------------------------------------
+
+#Usa la funcion bind_rows() para unir los 
+#data frames ya creados en un solo csv.
+
+csv_unido <- bind_rows(suelo_urbano_limpio, suelo_en_expansion_limpio, suelo_rural_limpio) |> 
+  write.csv(file = "registros_avistamiento_todos_los_suelos.csv") 
+
+```
+
+### Análisis de datos y tabla de variables
+
+escritura del análisis en proceso!
+
+```{r}
+#| label: tbl-tabla1
+#| tbl-cap: "Datos manipulados durante el análisis de los datos, donde \"Nombre\" corresponde al nombre con el que se va a referir a la variable en el texto y \"Etiqueta\" al nombre que tiene dicha variable en los scripts."
+
+
+# a continuación el código referente a la creación de la tabla de variables,
+# creando un data frame con las filas de cada varible, utilizando la libreria
+# tinytable para crear la tabla con la función tt()
+
+library(tinytable)
+
+tabla <- data.frame(
+Nombre = c("Especies", "Conteo individual", "Latitud", "Longitud", "Años", "Tipo de suelo",
+           "frecuencia relativa", "frecuencia"),
+Tipo = c("Cualitativa nominal", "Cuantitativa discreta", "Cuantitativa discreta",
+         "Cuantitativa discreta", "Cuantitativa continua", "Cualitativa nominal", 
+         "cuantitativa discreta", "cuantitativa discreta"),
+Unidad = c("NA", "NA", "grados decimales (°)", "grados decimales (°)", "año (t)", "NA",
+           "NA", "NA"),
+Etiqueta = c("species", "individualCount", "decimalLatitude", "decimalLongitude", "year",
+             "floorType", "Rfrecuency", "frecuency")
+)
+
+tt(tabla)
+
+```
